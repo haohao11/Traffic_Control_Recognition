@@ -8,19 +8,21 @@ Note that, for a long trip, it might pass multiple junctions by different distan
 To distinguish the same trip id for multiple junctions, a unique id is assigned to the *junc_trip* across all the junctions. The *min_trips* is used to exclude the junctions that have trips less than the predefine threshold value.
 
 **arm rules**
-- **tr** tram rails
-- **uc** uncontrolled sign
-- **ys** yield sign
+- **tr**: tram rails
+- **uc**: uncontrolled sign
+- **ys**: yield sign
 - **ps** priority sign
-- **sp** stop sign
-- **ra** roundabout
+- **sp**: stop sign
+- **ra**: roundabout
  
 ``` python
 python scripts/read_junc.py
 ```
 
 The following figure demonstrates a junction with *lower_threshold*=10, *upper_theshold*=100, (m) *min_trips*=16.
-The *lower_threshold* and *min_trips* values are taken from the paper, but sometimes it is problomatic when the next junction is too close (see the second figure) and many junsctions have less than 16 trips passed by. The threshold values may need to be optimized by the classification experiments.
 ![junction_0089](https://github.com/haohao11/Junctions/blob/master/analysis/junctTrajs_0089_165.png)
 ![junction_4857](https://github.com/haohao11/Junctions/blob/master/analysis/junctTrajs_4857_139.png)
+
+The *lower_threshold* and *min_trips* values are taken from the paper, but sometimes it is problomatic when the next junction is too close (see the second figure) and many junsctions have less than 16 trips passed by, such as roundabout, stop and sign. The threshold values may need to be optimized by the classification experiments. The third figure shows the distributions of number of GPS points and number of trips in each arm rule.
+![arm_data_distribution](https://github.com/haohao11/Junctions/blob/master/analysis/data_distribution.png)
 
