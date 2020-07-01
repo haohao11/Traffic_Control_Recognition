@@ -33,7 +33,7 @@ The following table lists the trips in all the junctions.
 
 Firgure 1            |  Figure 2
 :-------------------------:|:-------------------------:
-![junction_4857]https://github.com/haohao11/Junctions/blob/master/analysis/junctTrajs_4857_139.png  |  ![arm_data_distribution](https://github.com/haohao11/Junctions/blob/master/analysis/data_distribution.png)
+![junction_4857](https://github.com/haohao11/Junctions/blob/master/analysis/junctTrajs_4857_139.png) |  ![arm_data_distribution](https://github.com/haohao11/Junctions/blob/master/analysis/data_distribution.png)
 
 
 The *lower_threshold* and *min_trips* values are taken from the paper, but sometimes it is problomatic when the next junction is too close (see the second figure) and many junsctions have less than 16 trips passed by, such as roundabout, stop and sign. The threshold values may need to be optimized by the classification experiments. The third figure shows the distributions of number of GPS points and number of trips in each arm rule.
