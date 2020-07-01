@@ -32,7 +32,7 @@ The following table lists the trips in all the junctions.
 | Trips in each arm rule | 384, 3950, 350, 5465, 5360 |
 
 Firgure 1            |  Figure 2
-:-------------------------:|:-------------------------:|:-------------------------:
+:-------------------------:|:-------------------------:
 ![junction_4857]https://github.com/haohao11/Junctions/blob/master/analysis/junctTrajs_4857_139.png  |  ![arm_data_distribution](https://github.com/haohao11/Junctions/blob/master/analysis/data_distribution.png)
 
 
