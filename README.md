@@ -31,9 +31,9 @@ The following table lists the trips in all the junctions.
 | GPS points in each arm rule | 8590, 123820, 10867, 111683, 148735 |
 | Trips in each arm rule | 384, 3950, 350, 5465, 5360 |
 
-Firgure 1            |  Figure 2
-:-------------------------:|:-------------------------:
-![junction_0089](https://github.com/haohao11/Junctions/blob/master/analysis/junctTrajs_0089_165.png)  |  ![junction_4857](https://github.com/haohao11/Junctions/blob/master/analysis/junctTrajs_4857_139.png)
+Firgure 1            |  Figure 2 |  Figure 3
+:-------------------------:|:-------------------------:|:-------------------------:
+![junction_0089](https://github.com/haohao11/Junctions/blob/master/analysis/junctTrajs_0089_165.png)  |  ![junction_4857](https://github.com/haohao11/Junctions/blob/master/analysis/junctTrajs_4857_139.png) | ![arm_data_distribution](https://github.com/haohao11/Junctions/blob/master/analysis/data_distribution.png)
 
 
 
