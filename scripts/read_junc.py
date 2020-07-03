@@ -8,13 +8,11 @@ Created on Mon Jun 29 13:11:05 2020
 import pandas as pd
 import numpy as np
 import os 
-import glob
 import matplotlib.pyplot as plt
 import utm
 
-np.set_printoptions(suppress=True)
 
-def main():
+def preprocess(junctTrajs_dirs, junctions_dir, min_trips=16, upper_threshold=100, lower_threshold=10):
     '''
     Process the junction trip data
     Type: numpy
@@ -30,17 +28,9 @@ def main():
         timestamp, 
         speed,
         junc_utm_east_to_center
-        junc_utm_east_to_center
+        junc_utm_north_to_center
         junc_utm_to_center
-    ''' 
-    # Define the rules for select the trips in intersections
-    min_trips=16 # minimum number of trips in each junction
-    upper_threshold=100 # the maximum distance [m] of each trip to the given junction
-    lower_threshold=10 # the maximum distance [m] of each trip to the given junction
-       
-    junctTrajs_dirs = sorted(glob.glob(
-        os.path.join("../Hanover_Dataset/HannoverDataset/junctTrajs", "*.csv")))
-    junctions_dir = "../Hanover_Dataset/HannoverDataset/junctions.csv"    
+    '''    
     junctions = read_data(junctions_dir)
     
     juncs_trips = np.zeros((0, 12))    
@@ -61,7 +51,8 @@ def main():
                             
     # Add the unique id for each trip across the junctions  
     juncs_trips = add_index(juncs_trips)
-    np.save("../Hanover_Dataset/HannoverDataset/processed_data/juncs_trips.npy", juncs_trips) 
+        
+    return juncs_trips
     
 
 def read_data(dir):
@@ -69,7 +60,7 @@ def read_data(dir):
     return data
 
 
-def read_trip(junc_data, junction, junc_id, min_trips=16, upper_threshold=100, lower_threshold=10):
+def read_trip(junc_data, junction, junc_id, min_trips, upper_threshold, lower_threshold):
     '''
     This is the function to retrieve all the trips inside each junction
     Parameters
@@ -242,11 +233,4 @@ def add_index(data):
        
     return _data
     
-    
-    
-    
-    
 
-
-if __name__ == "__main__":
-    main()
