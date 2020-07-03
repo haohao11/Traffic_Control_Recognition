@@ -17,7 +17,7 @@ To distinguish the same trip id for multiple junctions, a unique id is assigned 
 - **ra**: roundabout
  
 ``` python
-python scripts/read_junc.py
+python scripts/trainer.py
 ```
 
 The following figures demonstrate junctions with *lower_threshold*=10, *upper_theshold*=100, (m) *min_trips*=16.
