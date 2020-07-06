@@ -38,7 +38,9 @@ class Load_data():
                 seq = trip[start:start+windsize, :]
                 seq_feature = trip_feature[start:start+windsize, :]
                 start += stride
-                yield seq, seq_feature
+                # yield seq, seq_feature
+                sequence = np.concatenate((seq[:, 0:9], seq_feature), axis=1) 
+                yield sequence
                 
             
     def select_features(self, trip):
@@ -68,7 +70,26 @@ class Load_data():
         # calculate the offset
         trip_r = trip_[1:, :-1] - trip_[:-1, :-1]
         # calculate the speed in utm_east and utm_north to junction center
-        trip_r[:, 1:] = trip_r[:, 1:] / trip_r[:, 0:1]       
+        # encountered in true_divide
+        
+        def speed(trip_data):
+            '''
+            This is the function to calculate the speed profile by deviding delta_time
+            Note: avoid the problem of dividing by zero
+            Question: why eixts there zero delta_time?
+            '''       
+            if np.any((trip_data[:, 0:1] == 0)):
+                for i in range(len(trip_data[:, 1:])):
+                    if trip_data[i, 0]==0:
+                        continue
+                    else:
+                        trip_data[i, 1:] = trip_data[i, 1:] / trip_data[i, 0]
+            else:
+                trip_data[:, 1:] = trip_data[:, 1:] / trip_data[:, 0:1]                 
+            return trip_data[:, 1:]  
+             
+        trip_r[:, 1:] = speed(trip_r)
+        
         trip_feature = np.concatenate((trip_[1:, 1:], trip_r[:, 1:]), axis=1)
                 
         # permuate the feature order to:
@@ -77,6 +98,12 @@ class Load_data():
         permutation = [0, 1, 2, 4, 5, 6, 3]
         
         return trip_feature[:, permutation]
+    
+    
+
+            
+                    
+            
         
 
         

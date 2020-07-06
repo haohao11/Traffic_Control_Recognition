@@ -13,6 +13,12 @@ import glob
 import numpy as np
 import os
 import sys
+import time
+
+from keras.callbacks import ModelCheckpoint, EarlyStopping
+from sklearn.metrics import confusion_matrix
+from sklearn.preprocessing import MinMaxScaler
+
 
 from data_utils import Load_data
 from read_junc import preprocess
@@ -20,6 +26,7 @@ from model import CVAE
 
 
 np.set_printoptions(suppress=True)
+
 
 def parse_args():
     desc = "Tensorflow/keras implementation of RNN LSTM for trajectory prediction"
@@ -58,21 +65,30 @@ def parse_args():
                         help='Loss weight')   
     parser.add_argument('--train_mode', type=bool, default=True, 
                         help='This is the training mode')
-    parser.add_argument('--split', type=float, default=0.8, 
+    parser.add_argument('--split', type=float, default=0.7, 
                         help='the split rate for training and validation')
     parser.add_argument('--lr', type=float, default=1e-3, 
                         help='Learning rate')
     parser.add_argument('--aug_num', type=int, default=8, 
                         help='Number of augmentations')
     parser.add_argument('--epochs', type=int, default=100, 
-                        help='Number of batches')
+                        help='Number of epochs')
     parser.add_argument('--patience', type=int, default=5, 
                         help='Maximum mumber of continuous epochs without converging')    
-
-
                           
     args = parser.parse_args(sys.argv[1:])
     return args
+
+
+def normalization(data):
+    '''
+    MinMax normalization
+    '''
+    scaler = MinMaxScaler()
+    print(scaler.fit(data))
+    print(scaler.data_max_)
+    normal_feature = scaler.transform(data)
+    return normal_feature
     
 
 def main():
@@ -96,23 +112,58 @@ def main():
         juncs_trips = np.load(processeddata_dir)
     
     
-    # Load the sequence data
+    # Load the sequence data using the sliding window scheme
     data_loader = Load_data(juncs_trips, 
                             window_size=args.window_size,
                             stride=args.stride) 
+        
+    # Load the sequence data and get the data index
+    data = [sequence for sequence in data_loader.sliding_window()]
+    data = np.reshape(data, (-1, 16)) # data index + features = 16
     
-    count = 0     
-    for sequence, sequence_feature in data_loader.sliding_window():
-                
-        print(sequence_feature)
-        print(sequence)
+    # Normalize the features
+    data[:, 9:] = normalization(data[:, 9:])
+    
+    # Get the class label
+    label = data[:, 2].astype(int)
+    assert args.num_classes== len(np.unique(label)), "The number of classes is not correct"
+    label = np.eye(args.num_classes)[label].reshape(-1, args.window_size, args.num_classes)    
         
-        r = sequence_feature[:, -1] / sequence_feature[:, -2]
-        print(r)
+    # Question: how to do the data partitioning
+    print(np.unique(data[:, 1]))    
+    data = np.reshape(data, (-1, args.window_size, 16))
+    print(data.shape)
+    train_val_split = data[:, 0, 1]<5000
+    
+    train_data_index = data[train_val_split, :, :9]
+    train_x = data[train_val_split, :, 9:]
+    train_y = label[train_val_split, :, :]
+    
+    val_data_index = data[~train_val_split, :, :9]
+    val_x = data[~train_val_split, :, 9:]
+    val_y = label[~train_val_split, :, :]
+
+    print("train_data_index", train_data_index.shape)
+    print("train_x", train_x.shape)
+    print("train_y", train_y.shape)
+    
+    print("val_data_index", val_data_index.shape)
+    print("val_x", val_x.shape)
+    print("val_y", val_y.shape)
+    
         
-        count += 1       
-        if count == 1:
-            break
+    ##########################################################################
+    ## START THE CLASSIFICATION TASK
+
+    # Define the callback and early stop
+    if not os.path.exists("../models"):
+        os.mkdir("../models")
+    timestr = time.strftime("%Y%m%d-%H%M%S")
+    filepath="../models/cvae_%0.f_%s.hdf5"%(args.epochs, timestr)
+    ## Eraly stop
+    earlystop = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=args.patience)
+    checkpoint = ModelCheckpoint(filepath, monitor='val_loss', verbose=0, save_best_only=True, mode='min')
+    callbacks_list = [earlystop, checkpoint]     
         
     # # Instantiate the model
     cvae = CVAE(args)   
@@ -120,10 +171,50 @@ def main():
     train =cvae.training() 
     train.summary() 
     
+    # # Start training phase
+    if args.train_mode:
+        
+        print("Start training the model...")           
+        train.fit(x=[train_x, train_y],
+                  y=train_y,
+                  shuffle=True,
+                  epochs=args.epochs,
+                  batch_size=args.batch_size,
+                  verbose=1,
+                  callbacks=callbacks_list,
+                 validation_data=([val_x, val_y], val_y))
+        train.load_weights(filepath)
+        
+    else:
+        print('Run pretrained model')
+        train.load_weights("../models/xxx.hdf5")
+        
+            
+    # # Start inference phase
     x_encoder=cvae.X_encoder()
     decoder = cvae.Decoder()       
     x_encoder.summary()
     decoder.summary()
+    
+    x_latent = x_encoder.predict(val_x, batch_size=args.batch_size)
+    y_primes = []
+    for i, x_ in enumerate(x_latent):
+        # sampling z from a normal distribution
+        x_ = np.reshape(x_, [1, -1])
+        z_sample = np.random.rand(1, args.z_dim)
+        y_p = decoder.predict(np.column_stack([z_sample, x_]))
+        y_primes.append(y_p)
+    
+    y_primes = np.reshape(y_primes, (-1, args.window_size, args.num_classes))
+    print(y_primes.shape)
+
+
+    ## ToDo, Write evaluation metrics
+    # matrix = confusion_matrix(val_y.reshape(-1, 5), y_primes.reshape(-1, 5))
+    # print(matrix) 
+    
+    print(val_y[0])
+    print(y_primes[0])
     
 
 
