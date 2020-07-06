@@ -16,13 +16,14 @@ import sys
 import time
 
 from keras.callbacks import ModelCheckpoint, EarlyStopping
-from sklearn.metrics import confusion_matrix
 from sklearn.preprocessing import MinMaxScaler
 
 
 from data_utils import Load_data
-from read_junc import preprocess
+from evaluation import Evaluation
 from model import CVAE
+from read_junc import preprocess
+
 
 
 np.set_printoptions(suppress=True)
@@ -45,16 +46,16 @@ def parse_args():
                         help='stride for the sliding window') 
     parser.add_argument('--num_features', type=int, default=7, 
                         help='number of input features')
-    parser.add_argument('--num_classes', type=int, default=5, 
+    parser.add_argument('--num_classes', type=int, default=3, 
                         help='number of input classes')
 
-    parser.add_argument('--encoder_dim', type=int, default=16, 
+    parser.add_argument('--encoder_dim', type=int, default=128, 
                         help='This is the size of the encoder output dimension')
     parser.add_argument('--z_dim', type=int, default=2, 
                         help='This is the size of the z dimension')
-    parser.add_argument('--z_decoder_dim', type=int, default=64, 
+    parser.add_argument('--z_decoder_dim', type=int, default=128, 
                         help='This is the size of the decoder LSTM dimension')
-    parser.add_argument('--hidden_size', type=int, default=32, 
+    parser.add_argument('--hidden_size', type=int, default=128, 
                         help='The size of GRU hidden state')
     parser.add_argument('--batch_size', type=int, default=352, help='Batch size')
     parser.add_argument('--s_drop', type=float, default=0.1, 
@@ -73,7 +74,7 @@ def parse_args():
                         help='Number of augmentations')
     parser.add_argument('--epochs', type=int, default=100, 
                         help='Number of epochs')
-    parser.add_argument('--patience', type=int, default=5, 
+    parser.add_argument('--patience', type=int, default=10, 
                         help='Maximum mumber of continuous epochs without converging')    
                           
     args = parser.parse_args(sys.argv[1:])
@@ -121,27 +122,48 @@ def main():
     data = [sequence for sequence in data_loader.sliding_window()]
     data = np.reshape(data, (-1, 16)) # data index + features = 16
     
+    # Note, due to the data imbalance, 
+    # merge tram_rails (-1) and yield_sigh (1) to priority_sign (2)
+    if args.num_classes==3:
+        data[data[:, 2]==-1, :] = 2
+        data[data[:, 2]==1, :] = 2
+        
+        # new target class: 
+        # uncontrolled:0, 
+        # traffic_light:1, 
+        # tram_rails/yield_sigh/priority_sign
+        data[data[:, 2]==4, :] = 1
+           
     # Normalize the features
     data[:, 9:] = normalization(data[:, 9:])
     
     # Get the class label
     label = data[:, 2].astype(int)
+    print(len(np.unique(label)))
     assert args.num_classes== len(np.unique(label)), "The number of classes is not correct"
-    label = np.eye(args.num_classes)[label].reshape(-1, args.window_size, args.num_classes)    
+    _label = np.eye(args.num_classes)[label].reshape(-1, args.window_size, args.num_classes)    
         
     # Question: how to do the data partitioning
     print(np.unique(data[:, 1]))    
     data = np.reshape(data, (-1, args.window_size, 16))
     print(data.shape)
-    train_val_split = data[:, 0, 1]<5000
+    
+    # train_val_split = data[:, 0, 1]<5000    
+    train_val_split = np.random.rand(len(data)) < args.split
     
     train_data_index = data[train_val_split, :, :9]
     train_x = data[train_val_split, :, 9:]
-    train_y = label[train_val_split, :, :]
+    train_y = _label[train_val_split, :, :]
     
     val_data_index = data[~train_val_split, :, :9]
     val_x = data[~train_val_split, :, 9:]
-    val_y = label[~train_val_split, :, :]
+    val_y = _label[~train_val_split, :, :]
+    
+    print(np.unique(np.argmax(val_y.reshape(-1, args.num_classes), axis=1), 
+                    return_counts=True))
+    
+    
+    
 
     print("train_data_index", train_data_index.shape)
     print("train_x", train_x.shape)
@@ -205,16 +227,18 @@ def main():
         y_p = decoder.predict(np.column_stack([z_sample, x_]))
         y_primes.append(y_p)
     
-    y_primes = np.reshape(y_primes, (-1, args.window_size, args.num_classes))
-    print(y_primes.shape)
-
-
-    ## ToDo, Write evaluation metrics
-    # matrix = confusion_matrix(val_y.reshape(-1, 5), y_primes.reshape(-1, 5))
-    # print(matrix) 
+    y_primes = np.reshape(y_primes, (-1, args.num_classes))
     
-    print(val_y[0])
-    print(y_primes[0])
+    ## Evaluation
+    target_names = ['uc', 'tl', 'ps']
+    eva = Evaluation(val_y.reshape(-1, args.num_classes), 
+                     y_primes,
+                     target_names)    
+    confusion_matrix = eva.cf_matrix()    
+    classification_report = eva.report()
+    
+    # Sum up the prediction for each trip and each junction
+    
     
 
 
