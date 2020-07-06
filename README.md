@@ -53,8 +53,8 @@ validation data
 | Items  | precission | recall  | f1-score | support |
 | ------------- | ------------- | ------------- | ------------- |------------- |
 | uncontrolled (uc) | 0.69 | 0.94 | 0.79 | 32064 |
-| traffic light (tf) | 1.00 | 1.00 | 1.00 | 37028 |
-| priority sign (ps) | 0.90 | 0.54 | 0.68 | 30489 |
+| traffic light (tf) | 1.00 | 1.00 | 1.00 | 37024 |
+| priority sign (ps) | 0.90 | 0.54 | 0.68 | 30480 |
 | accuracy |  |  | 0.84 | 99568 |
 | macro avg | 0.86 | 0.83 | 0.82 | 99568 |
 | weighted avg | 0.87 | 0.84 | 0.83 | 99568 |
