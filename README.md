@@ -44,7 +44,7 @@ The *lower_threshold* and *min_trips* values are taken from the paper, but somet
 - write evluation metrics (Done).
 - Sum up the prediction for trips/junctions/arms.
 
-# Question
+# Questions
 - Why are the speed provided by the files and speed calculated by data_utils not the same? Is the bias of transformation from lon/long to utm?
 - How to partition the data, based on trips/junctions/sequence?
 
