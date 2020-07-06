@@ -37,6 +37,29 @@ Firgure 1            |  Figure 2
 
 The *lower_threshold* and *min_trips* values are taken from the paper, but sometimes it is problomatic when the next junction is too close (see Figure 1) and many junsctions have less than 16 trips passed by, such as roundabout, stop and sign. The threshold values may need to be optimized by the classification experiments. The third figure shows the distributions of number of GPS points and number of trips in each arm rule.
 
+# Some intermediate results
+
+test/validation (70/30)
+validation data 
+- uc:32064, tl:37024, ps:30480
+
+
+| CF matrix  | uc | tf  | ps |
+| ------------- | ------------- | ------------- | ------------- |
+| uc | **30124** | 0 | 1940 |
+| tf | 0 | **37027** | 0 |
+| ps | 13749 | 159 | **16572** |
+
+| Items  | precission | recall  | f1-score | support |
+| ------------- | ------------- | ------------- | ------------- |------------- |
+| uncontrolled (uc) | 0.69 | 0.94 | 0.79 | 32064 |
+| traffic light (tf) | 1.00 | 1.00 | 1.00 | 37028 |
+| priority sign (ps) | 0.90 | 0.54 | 0.68 | 30489 |
+| accuracy |  |  | 0.84 | 99568 |
+| macro avg | 0.86 | 0.83 | 0.82 | 99568 |
+| weighted avg | 0.87 | 0.84 | 0.83 | 99568 |
+
+The traffic is prefectly correctly classified!
 
 # ToDos
 - write sliding window (Done).
