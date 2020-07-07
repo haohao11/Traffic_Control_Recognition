@@ -146,7 +146,8 @@ def main():
     data = np.reshape(data, (-1, args.window_size, 16))
     print(data.shape)
     
-    # train_val_split = data[:, 0, 1]<5000    
+    # train_val_split = data[:, 0, 1]<5000 
+    np.random.seed(10) 
     train_val_split = np.random.rand(len(data)) < args.split
     
     train_data_index = data[train_val_split, :, :9]

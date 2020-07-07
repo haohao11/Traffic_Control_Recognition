@@ -19,14 +19,14 @@ class Evaluation():
         
     def cf_matrix(self):
         matrix = confusion_matrix(self.ground_truth, 
-                                  self.prediction, 
-                                  target_names=self.target_names)
+                                  self.prediction)
         print(matrix)
         
     
     def report(self):
         print(classification_report(self.ground_truth, 
-                              self.prediction))
+                              self.prediction,
+                              target_names=self.target_names))
         
     
     
