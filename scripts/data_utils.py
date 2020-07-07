@@ -39,7 +39,7 @@ class Load_data():
                 seq_feature = trip_feature[start:start+windsize, :]
                 start += stride
                 # yield seq, seq_feature
-                sequence = np.concatenate((seq[:, 0:9], seq_feature), axis=1) 
+                sequence = np.concatenate((seq[:, 0:10], seq_feature), axis=1) 
                 yield sequence
                 
             
@@ -51,6 +51,7 @@ class Load_data():
             id, (this is the unique id for the trips across the junctions)
             junc_id,
             junc_arm_rule,
+            junc_arm,
             gid, 
             trip_id, 
             lat, 

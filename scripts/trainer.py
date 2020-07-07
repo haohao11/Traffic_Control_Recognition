@@ -34,7 +34,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description=desc)    
     parser.add_argument('--min_trips', type=int, default=16, 
                         help='minimum number of trips in each junction')
-    parser.add_argument('--upper_threshold', type=float, default=100.0, 
+    parser.add_argument('--upper_threshold', type=float, default=50.0, 
                         help='the upper bound distance [m] of each trip to the given junction')
     parser.add_argument('--lower_threshold', type=float, default=10.0, 
                         help='the lower bound distance [m] of each trip to the given junction')
@@ -42,7 +42,7 @@ def parse_args():
                         help='the lower bound distance [m] of each trip to the given junction')
     parser.add_argument('--window_size', type=int, default=8, 
                         help='sequence length for the sliding window')
-    parser.add_argument('--stride', type=int, default=8, 
+    parser.add_argument('--stride', type=int, default=4, 
                         help='stride for the sliding window') 
     parser.add_argument('--num_features', type=int, default=7, 
                         help='number of input features')
@@ -57,12 +57,12 @@ def parse_args():
                         help='This is the size of the decoder LSTM dimension')
     parser.add_argument('--hidden_size', type=int, default=128, 
                         help='The size of GRU hidden state')
-    parser.add_argument('--batch_size', type=int, default=352, help='Batch size')
+    parser.add_argument('--batch_size', type=int, default=64, help='Batch size')
     parser.add_argument('--s_drop', type=float, default=0.1, 
                         help='The dropout rate for trajectory sequence')
     parser.add_argument('--z_drop', type=float, default=0.2, 
                         help='The dropout rate for z input')
-    parser.add_argument('--beta', type=float, default=0.75, 
+    parser.add_argument('--beta', type=float, default=0.85, 
                         help='Loss weight')   
     parser.add_argument('--train_mode', type=bool, default=True, 
                         help='This is the training mode')
@@ -90,6 +90,35 @@ def normalization(data):
     print(scaler.data_max_)
     normal_feature = scaler.transform(data)
     return normal_feature
+
+def data_partition(data):
+    data = data.reshape(-1, data.shape[-1])
+    print("\nunique trips regarding junctions", len(np.unique(data[:, 0])))
+    print("unique junctions", len(np.unique(data[:, 1])))
+    print("overall trips", len(np.unique(data[:, 5])))
+    print("unique junc_arm", len(np.unique(data[:, 3])))
+    
+    print("unique junc_arm_rules", np.unique(data[:, 2]))
+    
+    ['uc', 'tl', 'ps']
+    uc = [] ## 0
+    tl = [] ## 1
+    ps = [] ## 2
+    
+    for i in data:
+        if i[2] == 0:
+            if i[0] not in uc:
+                uc.append(i[0])
+        elif i[2] == 1:
+            if i[0] not in tl:
+                tl.append(i[0])
+        elif i[2] == 2:
+            if i[0] not in ps:
+                ps.append(i[0])
+                        
+    print(len(uc), len(tl), len(ps))         
+    
+    # sys.exit()
     
 
 def main():
@@ -120,22 +149,25 @@ def main():
         
     # Load the sequence data and get the data index
     data = [sequence for sequence in data_loader.sliding_window()]
-    data = np.reshape(data, (-1, 16)) # data index + features = 16
+    data = np.reshape(data, (-1, 17)) # data index + features = 10 + 7 = 17
+    
+    
     
     # Note, due to the data imbalance, 
     # merge tram_rails (-1) and yield_sigh (1) to priority_sign (2)
     if args.num_classes==3:
-        data[data[:, 2]==-1, :] = 2
-        data[data[:, 2]==1, :] = 2
+        data[data[:, 2]==-1, 2] = 2
+        data[data[:, 2]==1, 2] = 2
         
         # new target class: 
         # uncontrolled:0, 
         # traffic_light:1, 
         # tram_rails/yield_sigh/priority_sign
-        data[data[:, 2]==4, :] = 1
-           
+        data[data[:, 2]==4, 2] = 1
+    
+        data_partition(data)
     # Normalize the features
-    data[:, 9:] = normalization(data[:, 9:])
+    data[:, 10:] = normalization(data[:, 10:])
     
     # Get the class label
     label = data[:, 2].astype(int)
@@ -143,19 +175,19 @@ def main():
     _label = np.eye(args.num_classes)[label].reshape(-1, args.window_size, args.num_classes)    
         
     # Question: how to do the data partitioning    
-    data = np.reshape(data, (-1, args.window_size, 16))
+    data = np.reshape(data, (-1, args.window_size, 17))
     print(data.shape)
     
     # train_val_split = data[:, 0, 1]<5000 
-    np.random.seed(10) 
+    np.random.seed(6) 
     train_val_split = np.random.rand(len(data)) < args.split
     
-    train_data_index = data[train_val_split, :, :9]
-    train_x = data[train_val_split, :, 9:]
+    train_data_index = data[train_val_split, :, :10]
+    train_x = data[train_val_split, :, 10:]
     train_y = _label[train_val_split, :, :]
     
-    val_data_index = data[~train_val_split, :, :9]
-    val_x = data[~train_val_split, :, 9:]
+    val_data_index = data[~train_val_split, :, :10]
+    val_x = data[~train_val_split, :, 10:]
     val_y = _label[~train_val_split, :, :]
     
     print(np.unique(np.argmax(val_y.reshape(-1, args.num_classes), axis=1), 
@@ -169,6 +201,8 @@ def main():
     print("val_data_index", val_data_index.shape)
     print("val_x", val_x.shape)
     print("val_y", val_y.shape)
+    
+    
     
         
     ##########################################################################

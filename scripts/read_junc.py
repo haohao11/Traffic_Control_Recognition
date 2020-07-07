@@ -17,23 +17,24 @@ def preprocess(junctTrajs_dirs, junctions_dir, min_trips=16, upper_threshold=100
     Process the junction trip data
     Type: numpy
     Header:
-        id, (this is the unique id for the trips across the junctions)
-        junc_id,
-        junc_arm_rule,
-        gid, 
-        trip_id, 
-        lat, 
-        lon, 
-        unixtime, 
-        timestamp, 
-        speed,
-        junc_utm_east_to_center
-        junc_utm_north_to_center
-        junc_utm_to_center
+        0: id, (this is the unique id for the trips across the junctions)
+        1: junc_id,
+        2: junc_arm_rule,
+        3: junc_arm,
+        4: gid, 
+        5: trip_id, 
+        6: lat, 
+        7: lon, 
+        8: unixtime, 
+        9: timestamp, 
+        10: speed,
+        11: junc_utm_east_to_center
+        12: junc_utm_north_to_center
+        13: junc_utm_to_center
     '''    
     junctions = read_data(junctions_dir)
     
-    juncs_trips = np.zeros((0, 12))    
+    juncs_trips = np.zeros((0, 13))    
     for junctTrajs_dir in junctTrajs_dirs:
         junc_id = int(junctTrajs_dir.split('\\')[-1].split('.')[0].split('_')[-1])
         junction = junctions.loc[junctions['junc_id']==junc_id]
@@ -45,9 +46,6 @@ def preprocess(junctTrajs_dirs, junctions_dir, min_trips=16, upper_threshold=100
                                lower_threshold=lower_threshold)           
         if junc_trips is not None:
             juncs_trips = np.vstack((juncs_trips, junc_trips))
-            
-        # if junc_id>=2000:
-        #     break
                             
     # Add the unique id for each trip across the junctions  
     juncs_trips = add_index(juncs_trips)
@@ -76,7 +74,7 @@ def read_trip(junc_data, junction, junc_id, min_trips, upper_threshold, lower_th
     junc_trips : numpy array
     '''
     # Store the junction trip data
-    junc_trips = np.zeros((0, 12))
+    junc_trips = np.zeros((0, 13))
     
     # Define the color of each rule
     colors = {-1:'k', 0:'g', 1:'r', 2:'c', 3:'m', 4:'y', 5:'b'}    
@@ -94,7 +92,8 @@ def read_trip(junc_data, junction, junc_id, min_trips, upper_threshold, lower_th
     count = 0
     for i in junc_data:
         trip_id = i[0]
-        junc_arm_rule = i[-2]
+        # junc_arm_rule = i[-2]
+        # junc_arm = i[-3]
                 
         trip_dir = os.path.join("../Hanover_Dataset/HannoverDataset/trips", "trip_%s.csv"%str(trip_id))
         trip_data = read_data(trip_dir).values
@@ -107,9 +106,9 @@ def read_trip(junc_data, junction, junc_id, min_trips, upper_threshold, lower_th
         trip_data = filter_space(trip_data, upper_threshold=upper_threshold, lower_threshold=lower_threshold)
         
         if trip_data is not None:
-            trip_data = add_juncid(junc_id, junc_arm_rule, trip_data)
+            trip_data = add_juncid(junc_id, i, trip_data)
             junc_trips = np.vstack((junc_trips, trip_data))
-            ax.plot(trip_data[:, -2], trip_data[:, -3], color=colors[junc_arm_rule])
+            ax.plot(trip_data[:, -2], trip_data[:, -3], color=colors[i[-2]])
             count += 1
             
     ax.plot([], [], color='k', label='tr') # tram rails
@@ -153,10 +152,17 @@ def filter_space(data, upper_threshold=100, lower_threshold=10):
         return data
     
     
-def add_juncid(junc_id, junc_arm_rule, trip_data):
+def add_juncid(junc_id, junc_trip_data, trip_data):
+    junc_arm_rule = junc_trip_data[-2]
+    junc_arm = junc_trip_data[-3]
     junc_id_c = np.full((trip_data.shape[0], 1), junc_id)
     junc_arm_rule_c = np.full((trip_data.shape[0], 1), junc_arm_rule)
-    trip_data = np.concatenate((junc_id_c, junc_arm_rule_c, trip_data), axis=1)
+    junc_arm_c = np.full((trip_data.shape[0], 1), junc_arm)
+    trip_data = np.concatenate((junc_id_c, junc_arm_rule_c, junc_arm_c, trip_data), axis=1)
+    
+    
+    
+    
     return trip_data
 
 
@@ -180,14 +186,15 @@ def add_index(data):
                4:"traffic L.",
                5:"roundabout"}
     
-    _data = np.zeros((0, 13))
-    _rows = np.zeros((0, 13))
+    _data = np.zeros((0, 14))
+    _rows = np.zeros((0, 14))
     
     for junc_id in junc_ids:
         junc_data = data[data[:, 0]==junc_id, :]
-        junc_trip_ids = np.unique(junc_data[:, 3])
+        junc_trip_ids = np.unique(junc_data[:, 4])
+        print("junc_trip_ids", junc_trip_ids)
         for junc_trip_id in junc_trip_ids:
-            junc_trip = junc_data[junc_data[:, 3]==junc_trip_id, :]
+            junc_trip = junc_data[junc_data[:, 4]==junc_trip_id, :]
             _id = np.full((junc_trip.shape[0], 1), id)
             junc_trip = np.concatenate((_id, junc_trip), axis=1)
             _data = np.vstack((_data, junc_trip))
