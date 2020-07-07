@@ -46,18 +46,18 @@ validation data
 
 | CF matrix  | uc | tf  | ps |
 | ------------- | ------------- | ------------- | ------------- |
-| uc | **10382** | 2731 | 6087 |
-| tf | 1336 | **18664** | 4952 |
-| ps | 1679 | 2288 | **10681** |
+| uc | **11368** | 472 | 2217 |
+| tf | 1938 | **10814** | 3490 |
+| ps | 1640 | 904 | **10227** |
 
 | Items  | precission | recall  | f1-score | support |
 | ------------- | ------------- | ------------- | ------------- |------------- |
-| uncontrolled (uc) | 0.77 | 0.54 | 0.64 | 58800 |
-| traffic light (tf) | 0.79 | 0.75 | 0.77 | 58800 |
-| priority sign (ps) | 0.49 | 0.73 | 0.59 | 58800 |
-| accuracy |  |  | 0.68 | 58800 |
-| macro avg | 0.68 | 0.67 | 0.66 | 58800 |
-| weighted avg | 0.71 | 0.68 | 0.68 | 58800 |
+| uncontrolled (uc) | 0.76 | 0.81 | 0.78 | 14057 |
+| traffic light (tf) | 0.89 | 0.67 | 0.76 | 16242 |
+| priority sign (ps) | 0.64 | 0.80 | 0.71 | 12771 |
+| accuracy |  |  | 0.75 | 43070 |
+| macro avg | 0.76 | 0.76 | 0.75 | 43070 |
+| weighted avg | 0.77 | 0.75 | 0.75 | 43070 |
 
 The traffic is prefectly correctly classified!
 
