@@ -18,7 +18,9 @@ class Evaluation():
         
         
     def cf_matrix(self):
-        matrix = confusion_matrix(self.ground_truth, self.prediction)
+        matrix = confusion_matrix(self.ground_truth, 
+                                  self.prediction, 
+                                  target_names=self.target_names)
         print(matrix)
         
     

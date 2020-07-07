@@ -139,12 +139,10 @@ def main():
     
     # Get the class label
     label = data[:, 2].astype(int)
-    print(len(np.unique(label)))
     assert args.num_classes== len(np.unique(label)), "The number of classes is not correct"
     _label = np.eye(args.num_classes)[label].reshape(-1, args.window_size, args.num_classes)    
         
-    # Question: how to do the data partitioning
-    print(np.unique(data[:, 1]))    
+    # Question: how to do the data partitioning    
     data = np.reshape(data, (-1, args.window_size, 16))
     print(data.shape)
     
@@ -163,8 +161,6 @@ def main():
                     return_counts=True))
     
     
-    
-
     print("train_data_index", train_data_index.shape)
     print("train_x", train_x.shape)
     print("train_y", train_y.shape)
