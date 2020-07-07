@@ -44,7 +44,7 @@ def parse_args():
                         help='sequence length for the sliding window')
     parser.add_argument('--stride', type=int, default=4, 
                         help='stride for the sliding window') 
-    parser.add_argument('--num_features', type=int, default=7, 
+    parser.add_argument('--num_features', type=int, default=6, 
                         help='number of input features')
     parser.add_argument('--num_classes', type=int, default=3, 
                         help='number of input classes')
@@ -183,11 +183,11 @@ def main():
     train_val_split = np.random.rand(len(data)) < args.split
     
     train_data_index = data[train_val_split, :, :10]
-    train_x = data[train_val_split, :, 10:]
+    train_x = data[train_val_split, :, 10:16]
     train_y = _label[train_val_split, :, :]
     
     val_data_index = data[~train_val_split, :, :10]
-    val_x = data[~train_val_split, :, 10:]
+    val_x = data[~train_val_split, :, 10:16]
     val_y = _label[~train_val_split, :, :]
     
     print(np.unique(np.argmax(val_y.reshape(-1, args.num_classes), axis=1), 
