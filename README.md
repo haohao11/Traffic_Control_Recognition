@@ -39,10 +39,9 @@ The *lower_threshold* and *min_trips* values are taken from the paper, but somet
 
 # Some intermediate results
 
+## Classification results for each sliding window 
+sliding window = 8, stride=4
 test/validation (70/30)
-validation data 
-- uc:32064, tl:37024, ps:30480
-
 
 | CF matrix  | uc | tf  | ps |
 | ------------- | ------------- | ------------- | ------------- |
@@ -59,7 +58,23 @@ validation data
 | macro avg | 0.76 | 0.76 | 0.75 | 43070 |
 | weighted avg | 0.77 | 0.75 | 0.75 | 43070 |
 
-The traffic is prefectly correctly classified!
+## Classification results for each arm
+test/validation (70/30)
+| CF matrix  | uc | tf  | ps |
+| ------------- | ------------- | ------------- | ------------- |
+| uc | **49** | 0 | 0 |
+| tf | 4 | **62** | 9 |
+| ps | 11 | 2 | **50** |
+
+| Items  | precission | recall  | f1-score | support |
+| ------------- | ------------- | ------------- | ------------- |------------- |
+| uncontrolled (uc) | 0.77 | 1.00 | 0.87 | 49 |
+| traffic light (tf) | 0.97 | 0.83 | 0.89 | 75 |
+| priority sign (ps) | 0.85 | 0.79 | 0.82 | 63 |
+| accuracy |  |  | 0.86 | 187 |
+| macro avg | 0.86 | 0.87 | 0.86 | 187 |
+| weighted avg | 0.87 | 0.86 | 0.86 | 187 |
+
 
 # ToDos
 - write sliding window (Done).
