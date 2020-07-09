@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import utm
 
 
-def preprocess(junctTrajs_dirs, junctions_dir, min_trips=16, upper_threshold=100, lower_threshold=10):
+def preprocess(junctTrajs_dirs, junctions_dir, min_trips=16, upper_threshold=100, lower_threshold=10, window_size=8):
     '''
     Process the junction trip data
     Type: numpy
@@ -43,7 +43,8 @@ def preprocess(junctTrajs_dirs, junctions_dir, min_trips=16, upper_threshold=100
         junc_trips = read_trip(junc_data, junction, junc_id, 
                                min_trips=min_trips, 
                                upper_threshold=upper_threshold, 
-                               lower_threshold=lower_threshold)           
+                               lower_threshold=lower_threshold,
+                               window_size=window_size)           
         if junc_trips is not None:
             juncs_trips = np.vstack((juncs_trips, junc_trips))
                             
@@ -58,7 +59,7 @@ def read_data(dir):
     return data
 
 
-def read_trip(junc_data, junction, junc_id, min_trips, upper_threshold, lower_threshold, window_size=8):
+def read_trip(junc_data, junction, junc_id, min_trips, upper_threshold, lower_threshold, window_size):
     '''
     This is the function to retrieve all the trips inside each junction
     Parameters

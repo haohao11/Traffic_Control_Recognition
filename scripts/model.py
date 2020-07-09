@@ -40,7 +40,7 @@ class CVAE():
         # Construct the condition model
         self.x = Input(shape=(self.window_size, self.num_features), name='x') 
         self.x_conv1d = Conv1D(self.hidden_size//2, kernel_size=3, strides=1, padding='same', name='x_conv1d')(self.x)
-        self.x_dense = Dense(self.hidden_size, activation='relu', name='x_dense')(self.x_conv1d)
+        self.x_dense = Dense(self.hidden_size, activation='relu', name='x_dense')(self.x_conv1d )
         self.x_state = LSTM(self.encoder_dim,
                        return_sequences=False,
                        stateful=False,
@@ -74,11 +74,13 @@ class CVAE():
             
         # CONSTRUCT THE CVAE DECODER
         self.z_decoder1 = Dense(self.hidden_size//2, activation='relu', name='z_decoder1')
+        self.z_decoder2 = Dense(self.hidden_size//8, activation='relu', name='z_decoder2')
         self.y_decoder = Dense(self.num_classes, activation='softmax', name='y_decoder') 
         
         # Instantiate the decoder by feeding the concatenated z and x_encoded_dense
         # Reconstrcting y
         self.z_d1 = self.z_decoder1(self.z_cond)
+        # self.z_d2 = self.z_decoder2(self.z_d1)
         self.y_prime = self.y_decoder(self.z_d1)
         
         
@@ -129,6 +131,7 @@ class CVAE():
         print('Construct the Decoder for trajectory oreidction')
         decoder_input = Input(shape=(self.z_dim+self.encoder_dim, ), name='decoder_input')
         _z_d1 = self.z_decoder1(decoder_input)
+        # _z_d2 = self.z_decoder2(_z_d1)
         _y_prime = self.y_decoder(_z_d1)
         generator = Model(decoder_input, _y_prime)
         return generator

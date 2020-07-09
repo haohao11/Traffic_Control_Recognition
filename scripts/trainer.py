@@ -56,22 +56,23 @@ def parse_args():
                         help='This is the size of the decoder LSTM dimension')
     parser.add_argument('--hidden_size', type=int, default=128, 
                         help='The size of GRU hidden state')
-    parser.add_argument('--batch_size', type=int, default=64, help='Batch size')
+    parser.add_argument('--batch_size', type=int, default=64, 
+                        help='Batch size')
     parser.add_argument('--s_drop', type=float, default=0.1, 
                         help='The dropout rate for trajectory sequence')
     parser.add_argument('--z_drop', type=float, default=0.2, 
                         help='The dropout rate for z input')
     parser.add_argument('--beta', type=float, default=0.8, 
                         help='Loss weight')   
-    parser.add_argument('--train_mode', type=bool, default=True, 
+    parser.add_argument('--train_mode', type=bool, default=False, 
                         help='This is the training mode')
     parser.add_argument('--split', type=float, default=0.7, 
                         help='the split rate for training and validation')
-    parser.add_argument('--lr', type=float, default=1e-3, 
+    parser.add_argument('--lr', type=float, default=5e-4, 
                         help='Learning rate')
     parser.add_argument('--aug_num', type=int, default=8, 
                         help='Number of augmentations')
-    parser.add_argument('--epochs', type=int, default=100, 
+    parser.add_argument('--epochs', type=int, default=200, 
                         help='Number of epochs')
     parser.add_argument('--patience', type=int, default=10, 
                         help='Maximum mumber of continuous epochs without converging')    
@@ -94,9 +95,6 @@ def data_partition(data, args, data_summary=False):
     
     
     # split the data into training and testing
-    # Note that, the trips in the training arms and validating/testing arms should not be mixed
-    # Meaning, training arms and validating/testing are different
-    # window_size = args.window_size
     feature_index = 0
     split = args.split
     # junc_arms = np.unique(data[:, 3])
@@ -109,12 +107,10 @@ def data_partition(data, args, data_summary=False):
     # data = np.reshape(data, (-1, window_size, data.shape[-1]))
     train_val_split = []    
     for i in data[:, 0, feature_index]:
-        train_val_split.append(i in train_)
-    # print(train_val_split)    
+        train_val_split.append(i in train_)  
     print("train_val_split", np.unique(train_val_split, return_counts=True))
     # print(train_val_split)    
     # print("split_list", split_list)
-    # print("train_arms", train_arms)
     # sys.exit()
     
     # Summmary of the trips in each rule
@@ -161,7 +157,8 @@ def main():
         juncs_trips = preprocess(junctTrajs_dirs, junctions_dir, 
                                  min_trips=args.min_trips, 
                                  upper_threshold=args.upper_threshold, 
-                                 lower_threshold=args.lower_threshold)        
+                                 lower_threshold=args.lower_threshold,
+                                 window_size=args.window_size)        
         np.save(processeddata_dir, juncs_trips)
     else:
         juncs_trips = np.load(processeddata_dir)
@@ -193,7 +190,6 @@ def main():
     # Filter out 3:"stop S." and 5:"roundabout"
     data = data[data[:, 2]!=3, :]
     data = data[data[:, 2]!=5, :]
-    
         
     # Normalize the features
     data[:, 10:] = normalization(data[:, 10:])
@@ -207,9 +203,6 @@ def main():
     data = np.reshape(data, (-1, args.window_size, 18))
     print(data.shape)
     
-    np.random.seed(6)
-    # train_val_split = data[:, 0, 1]<5000     
-    # train_val_split = np.random.rand(len(data)) < args.split   
     train_val_split = data_partition(data, args)
     
     train_data_index = data[train_val_split, -1, :10] # the last step of the sliding window
@@ -223,8 +216,7 @@ def main():
     val_y = _label[~train_val_split, -1, :] # the last step of the sliding window
     
     print(np.unique(np.argmax(val_y.reshape(-1, args.num_classes), axis=1), 
-                    return_counts=True))
-    
+                    return_counts=True))    
     
     print("train_data_index", train_data_index.shape)
     print("train_x", train_x.shape)
@@ -233,10 +225,7 @@ def main():
     print("val_data_index", val_data_index.shape)
     print("val_x", val_x.shape)
     print("val_y", val_y.shape)
-    
-    
-    
-        
+            
     ##########################################################################
     ## START THE CLASSIFICATION TASK
 
@@ -258,7 +247,7 @@ def main():
     
     # # Start training phase
     if args.train_mode:
-        # train.load_weights("../models/cvae_100_20200707-231746.hdf5")
+        train.load_weights("../models/cvae_100_20200709-112451.hdf5")
         print("Start training the model...")           
         train.fit(x=[train_x, train_y],
                   y=train_y,
@@ -271,8 +260,8 @@ def main():
         train.load_weights(filepath)
         
     else:
-        print('Run pretrained model')
-        train.load_weights("../models/cvae_100_20200707-231746.hdf5")
+        print('Run pretrained model')       
+        train.load_weights("../models/cvae_200_20200709-211305.hdf5")
         
             
     # # Start inference phase
