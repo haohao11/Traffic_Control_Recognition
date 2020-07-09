@@ -42,6 +42,7 @@ The *lower_threshold* and *min_trips* values are taken from the paper, but somet
 ## Classification results for each sliding window 
 sliding window = 8, stride=2
 test/validation (70/30)
+model: cvae_100_20200709-112451.hdf5
 
 | CF matrix  | uc | tf  | ps |
 | ------------- | ------------- | ------------- | ------------- |
