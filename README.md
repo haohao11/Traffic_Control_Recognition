@@ -40,40 +40,40 @@ The *lower_threshold* and *min_trips* values are taken from the paper, but somet
 # Some intermediate results
 
 ## Classification results for each sliding window 
-sliding window = 8, stride=4
+sliding window = 8, stride=2
 test/validation (70/30)
 
 | CF matrix  | uc | tf  | ps |
 | ------------- | ------------- | ------------- | ------------- |
-| uc | **11368** | 472 | 2217 |
-| tf | 1938 | **10814** | 3490 |
-| ps | 1640 | 904 | **10227** |
+| uc | **7943** | 631 | 1240 |
+| tf | 1621 | **8877** | 2401 |
+| ps | 1469 | 998 | **7132** |
 
 | Items  | precission | recall  | f1-score | support |
 | ------------- | ------------- | ------------- | ------------- |------------- |
-| uncontrolled (uc) | 0.76 | 0.81 | 0.78 | 14057 |
-| traffic light (tf) | 0.89 | 0.67 | 0.76 | 16242 |
-| priority sign (ps) | 0.64 | 0.80 | 0.71 | 12771 |
-| accuracy |  |  | 0.75 | 43070 |
-| macro avg | 0.76 | 0.76 | 0.75 | 43070 |
-| weighted avg | 0.77 | 0.75 | 0.75 | 43070 |
+| uncontrolled (uc) | 0.72 | 0.81 | 0.76 | 9814 |
+| traffic light (tf) | 0.84 | 0.69 | 0.76 | 12899 |
+| priority sign (ps) | 0.66 | 0.74 | 0.70 | 9599 |
+| accuracy |  |  | 0.74 | 32312 |
+| macro avg | 0.74 | 0.75 | 0.74 | 32312 |
+| weighted avg | 0.75 | 0.74 | 0.74 | 32312 |
 
 ## Classification results for each arm
 test/validation (70/30)
 | CF matrix  | uc | tf  | ps |
 | ------------- | ------------- | ------------- | ------------- |
-| uc | **49** | 0 | 0 |
-| tf | 4 | **62** | 9 |
-| ps | 11 | 2 | **50** |
+| uc | **130** | 0 | 9 |
+| tf | 12 | **165** | 25 |
+| ps | 20 | 8 | **184** |
 
 | Items  | precission | recall  | f1-score | support |
 | ------------- | ------------- | ------------- | ------------- |------------- |
-| uncontrolled (uc) | 0.77 | 1.00 | 0.87 | 49 |
-| traffic light (tf) | 0.97 | 0.83 | 0.89 | 75 |
-| priority sign (ps) | 0.85 | 0.79 | 0.82 | 63 |
-| accuracy |  |  | 0.86 | 187 |
-| macro avg | 0.86 | 0.87 | 0.86 | 187 |
-| weighted avg | 0.87 | 0.86 | 0.86 | 187 |
+| uncontrolled (uc) | 0.80 | 0.94 | 0.86 | 139 |
+| traffic light (tf) | 0.95 | 0.82 | 0.88 | 202 |
+| priority sign (ps) | 0.84 | 0.87 | 0.86 | 212 |
+| accuracy |  |  | 0.87 | 553 |
+| macro avg | 0.87 | 0.87 | 0.87 | 553 |
+| weighted avg | 0.87 | 0.87 | 0.87 | 553 |
 
 
 # ToDos
