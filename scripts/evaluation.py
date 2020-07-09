@@ -11,9 +11,14 @@ from sklearn.metrics import confusion_matrix, classification_report
 
 class Evaluation():
     
-    def __init__(self, ground_truth, prediction, target_names=None):
-        self.ground_truth = np.argmax(ground_truth, axis=1)
-        self.prediction = np.argmax(prediction, axis=1)
+    def __init__(self, ground_truth, prediction, target_names=None, arg=True):
+        
+        if arg:
+            self.ground_truth = np.argmax(ground_truth, axis=1)
+            self.prediction = np.argmax(prediction, axis=1)
+        else:
+            self.ground_truth = ground_truth
+            self.prediction = prediction            
         self.target_names = target_names
         
         

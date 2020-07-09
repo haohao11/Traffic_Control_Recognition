@@ -58,7 +58,7 @@ def read_data(dir):
     return data
 
 
-def read_trip(junc_data, junction, junc_id, min_trips, upper_threshold, lower_threshold):
+def read_trip(junc_data, junction, junc_id, min_trips, upper_threshold, lower_threshold, window_size=8):
     '''
     This is the function to retrieve all the trips inside each junction
     Parameters
@@ -107,6 +107,10 @@ def read_trip(junc_data, junction, junc_id, min_trips, upper_threshold, lower_th
         
         if trip_data is not None:
             trip_data = add_juncid(junc_id, i, trip_data)
+            
+            ### Only take the approaching ones plus one window_size(8)
+            trip_data = trip_data[:np.argmin(trip_data[:, -1])+1+window_size, :]
+            
             junc_trips = np.vstack((junc_trips, trip_data))
             ax.plot(trip_data[:, -2], trip_data[:, -3], color=colors[i[-2]])
             count += 1
@@ -192,7 +196,7 @@ def add_index(data):
     for junc_id in junc_ids:
         junc_data = data[data[:, 0]==junc_id, :]
         junc_trip_ids = np.unique(junc_data[:, 4])
-        print("junc_trip_ids", junc_trip_ids)
+        # print("junc_trip_ids", junc_trip_ids)
         for junc_trip_id in junc_trip_ids:
             junc_trip = junc_data[junc_data[:, 4]==junc_trip_id, :]
             _id = np.full((junc_trip.shape[0], 1), id)

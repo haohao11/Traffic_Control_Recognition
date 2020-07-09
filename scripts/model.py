@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Jul  3 16:59:10 2020
+Created on Tue Jul  7 16:21:57 2020
 
 @author: cheng
 """
@@ -47,24 +47,17 @@ class CVAE():
                        dropout=self.s_drop,
                        name='x_state')(self.x_dense)
         
-        # Construct the label model
-        self.y = Input(shape=(self.window_size, self.num_classes), name='y')
-        self.y_conv1d = Conv1D(self.hidden_size//2, kernel_size=3, strides=1, padding='same', name='y_conv1d')(self.y)
-        self.y_dense = Dense(self.hidden_size, activation='relu', name='y_dense')(self.y_conv1d)
-        self.y_state = LSTM(self.encoder_dim,
-                       return_sequences=False,
-                       stateful=False,
-                       dropout=self.s_drop,
-                       name='y_state')(self.y_dense)
+        # Construct the label model        
+        self.y = Input(shape=(self.num_classes, ), name='y')
+        self.y_dense = Dense(self.encoder_dim//8, activation='relu', name='y_dense')(self.y)        
         
         # CONSTRUCT THE CVAE ENCODER BY FEEDING THE CONCATENATED X AND Y
         # the concatenated input
-        self.inputs = concatenate([self.x_state, self.y_state], name='inputs') 
+        self.inputs = concatenate([self.x_state, self.y_dense], name='inputs') 
         self.xy_encoded_d1 = Dense(self.hidden_size, activation='relu', name='xy_encoded_d1')(self.inputs) 
         self.xy_encoded_d2 = Dense(self.hidden_size//2, activation='relu', name='xy_encoded_d2')(self.xy_encoded_d1)
-        self.mu = Dense(self.z_dim, activation='linear', name='mu')(self.xy_encoded_d2) # 2
-        self.log_var = Dense(self.z_dim, activation='linear', name='log_var')(self.xy_encoded_d2) # 2
-        
+        self.mu = Dense(self.z_dim, activation='linear', name='mu')(self.xy_encoded_d2)
+        self.log_var = Dense(self.z_dim, activation='linear', name='log_var')(self.xy_encoded_d2)        
         
         # THE REPARAMETERIZATION TRICK FOR THE LATENT VARIABLE z
         # sampling function
@@ -81,24 +74,12 @@ class CVAE():
             
         # CONSTRUCT THE CVAE DECODER
         self.z_decoder1 = Dense(self.hidden_size//2, activation='relu', name='z_decoder1')
-        self.z_decoder2 = RepeatVector(self.window_size, name='z_decoder2')
-        self.z_decoder3 = LSTM(self.z_decoder_dim,
-                          return_sequences=True,
-                          stateful=False,
-                          dropout=self.z_drop,
-                          name='z_decoder3')
-        self.z_decoder4 = Activation('tanh', name='z_decoder4')
-        self.z_decoder5 = Dropout(self.z_drop, name='z_decoder5')
-        self.y_decoder = TimeDistributed(Dense(self.num_classes, activation='softmax'), name='y_decoder') # 
+        self.y_decoder = Dense(self.num_classes, activation='softmax', name='y_decoder') 
         
         # Instantiate the decoder by feeding the concatenated z and x_encoded_dense
         # Reconstrcting y
         self.z_d1 = self.z_decoder1(self.z_cond)
-        self.z_d2 = self.z_decoder2(self.z_d1)
-        self.z_d3 = self.z_decoder3(self.z_d2)
-        self.z_d4 = self.z_decoder4(self.z_d3)
-        self.z_d5 = self.z_decoder5(self.z_d4)
-        self.y_prime = self.y_decoder(self.z_d5)
+        self.y_prime = self.y_decoder(self.z_d1)
         
         
     def training(self):
@@ -148,13 +129,8 @@ class CVAE():
         print('Construct the Decoder for trajectory oreidction')
         decoder_input = Input(shape=(self.z_dim+self.encoder_dim, ), name='decoder_input')
         _z_d1 = self.z_decoder1(decoder_input)
-        _z_d2 = self.z_decoder2(_z_d1)
-        _z_d3 = self.z_decoder3(_z_d2)
-        _z_d4 = self.z_decoder4(_z_d3)
-        _z_d5 = self.z_decoder5(_z_d4)
-        _y_prime = self.y_decoder(_z_d5)
+        _y_prime = self.y_decoder(_z_d1)
         generator = Model(decoder_input, _y_prime)
-        # generator.summary()
         return generator
         
         

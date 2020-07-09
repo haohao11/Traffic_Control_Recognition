@@ -91,12 +91,22 @@ class Load_data():
              
         trip_r[:, 1:] = speed(trip_r)
         
-        trip_feature = np.concatenate((trip_[1:, 1:], trip_r[:, 1:]), axis=1)
+        trip_feature = np.concatenate((trip_[1:, 1:], trip_r[:, :]), axis=1)
                 
         # permuate the feature order to:
         # junc_utm_to_center, utm_east, utm_north, utm_east_speed, utm_east_speed, speed_1, speed_2
         # Why speed_1 and speed_2 are not the same
         permutation = [0, 1, 2, 4, 5, 6, 3]
+        
+        # junc_utm_to_center,
+        # utm_east, 
+        # utm_north, 
+        # utm_east_speed, 
+        # utm_east_speed, 
+        # speed_1, 
+        # speed_2, 
+        # delta_time
+        permutation = [0, 1, 2, 5, 6, 7, 3, 4]
         
         return trip_feature[:, permutation]
     
