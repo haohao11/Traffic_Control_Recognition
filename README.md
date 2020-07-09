@@ -42,38 +42,39 @@ The *lower_threshold* and *min_trips* values are taken from the paper, but somet
 ## Classification results for each sliding window 
 sliding window = 8, stride=2
 test/validation (70/30)
+model: cvae_100_20200709-112451.hdf5
 
 | CF matrix  | uc | tf  | ps |
 | ------------- | ------------- | ------------- | ------------- |
-| uc | **7943** | 631 | 1240 |
-| tf | 1621 | **8877** | 2401 |
-| ps | 1469 | 998 | **7132** |
+| uc | **7722** | 767 | 1325 |
+| tf | 1331 | **9305** | 2263 |
+| ps | 1180 | 1116 | **7303** |
 
 | Items  | precission | recall  | f1-score | support |
 | ------------- | ------------- | ------------- | ------------- |------------- |
-| uncontrolled (uc) | 0.72 | 0.81 | 0.76 | 9814 |
-| traffic light (tf) | 0.84 | 0.69 | 0.76 | 12899 |
-| priority sign (ps) | 0.66 | 0.74 | 0.70 | 9599 |
-| accuracy |  |  | 0.74 | 32312 |
-| macro avg | 0.74 | 0.75 | 0.74 | 32312 |
-| weighted avg | 0.75 | 0.74 | 0.74 | 32312 |
+| uncontrolled (uc) | 0.75 | 0.79 | 0.77 | 9814 |
+| traffic light (tf) | 0.83 | 0.72 | 0.77 | 12899 |
+| priority sign (ps) | 0.67 | 0.76 | 0.71 | 9599 |
+| accuracy |  |  | 0.75 | 32312 |
+| macro avg | 0.75 | 0.76 | 0.75 | 32312 |
+| weighted avg | 0.76 | 0.75 | 0.75 | 32312 |
 
 ## Classification results for each arm
 test/validation (70/30)
 | CF matrix  | uc | tf  | ps |
 | ------------- | ------------- | ------------- | ------------- |
-| uc | **130** | 0 | 9 |
-| tf | 12 | **165** | 25 |
-| ps | 20 | 8 | **184** |
+| uc | **130** | 1 | 8 |
+| tf | 8 | **172** | 22 |
+| ps | 11 | 11 | **190** |
 
 | Items  | precission | recall  | f1-score | support |
 | ------------- | ------------- | ------------- | ------------- |------------- |
-| uncontrolled (uc) | 0.80 | 0.94 | 0.86 | 139 |
-| traffic light (tf) | 0.95 | 0.82 | 0.88 | 202 |
-| priority sign (ps) | 0.84 | 0.87 | 0.86 | 212 |
-| accuracy |  |  | 0.87 | 553 |
-| macro avg | 0.87 | 0.87 | 0.87 | 553 |
-| weighted avg | 0.87 | 0.87 | 0.87 | 553 |
+| uncontrolled (uc) | 0.87 | 0.94 | 0.90 | 139 |
+| traffic light (tf) | 0.93 | 0.85 | 0.89 | 202 |
+| priority sign (ps) | 0.86 | 0.90 | 0.88 | 212 |
+| accuracy |  |  | 0.89 | 553 |
+| macro avg | 0.89 | 0.89 | 0.89 | 553 |
+| weighted avg | 0.89 | 0.89 | 0.89 | 553 |
 
 
 # ToDos
