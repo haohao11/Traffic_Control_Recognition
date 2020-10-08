@@ -88,3 +88,25 @@ test/validation (70/30)
 - How to partition the data, based on trips/junctions/sequence?
 
 
+# Redo the experiment (hyper)
+```html
+min_tripss = 16
+upper_threshold = 65.5
+lower_threshold = 10.0
+window_size = 8
+stride = 7
+num_classes = 3
+encoder_dim = 128
+z_dim = 2
+z_decoder_dim = 128
+batch_size = 256
+s_drop = 0.3
+z_drop = 0.1
+beta = 0.8
+split = 0.7
+lr = 1e-3
+wpochs = 500
+patience = 20
+````
+
+
