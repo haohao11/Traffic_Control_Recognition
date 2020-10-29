@@ -6,6 +6,7 @@ Created on Fri Jul  3 10:07:13 2020
 """
 
 import numpy as np
+# import sys
 
 
 class Load_data():
@@ -65,7 +66,8 @@ class Load_data():
         '''
         # keep only timestamp, speed, junc_utm_east_to_center, junc_utm_east_to_center, junc_utm_to_center
         trip_ = trip[:, -5:]
-        _permutation = [0, 4, 2, 3, 1] # move speed to the end
+        _permutation = [0, 4, 2, 3, 1] # move speed to the end: 
+        # timestamp, junc_utm_to_center, junc_utm_east_to_center, junc_utm_north_to_center,speed
         trip_ = trip_[:, _permutation]
        
         # calculate the offset
@@ -91,12 +93,15 @@ class Load_data():
              
         trip_r[:, 1:] = speed(trip_r)
         
+        # junc_utm_to_center, junc_utm_east_to_center, junc_utm_north_to_center, speed
+        # +
+        # d_time, d_junc_utm_to_center, d_junc_utm_east_to_center, d_junc_utm_north_to_center
         trip_feature = np.concatenate((trip_[1:, 1:], trip_r[:, :]), axis=1)
                 
         # permuate the feature order to:
         # junc_utm_to_center, utm_east, utm_north, utm_east_speed, utm_east_speed, speed_1, speed_2
         # Why speed_1 and speed_2 are not the same
-        permutation = [0, 1, 2, 4, 5, 6, 3]
+        # permutation = [0, 1, 2, 4, 5, 6, 3]
         
         # junc_utm_to_center,
         # utm_east, 
@@ -108,7 +113,25 @@ class Load_data():
         # delta_time
         permutation = [0, 1, 2, 5, 6, 7, 3, 4]
         
-        return trip_feature[:, permutation]
+        
+        # Add heading angel in relation to the junction center
+        trip_feature = trip_feature[:, permutation]
+        heading = np.arctan2(trip_feature[:, 2], trip_feature[:, 1]).reshape(-1, 1)
+        trip_feature = np.concatenate((trip_feature, heading), axis=1)
+    
+        
+        
+        return trip_feature
+        # junc_utm_to_center,
+        # utm_east, 
+        # utm_north, 
+        # utm_east_speed, 
+        # utm_east_speed, 
+        # speed_1, 
+        # speed_2, 
+        # delta_time
+        # angle
+    
     
     
 

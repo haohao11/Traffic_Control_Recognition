@@ -77,13 +77,15 @@ def read_trip(junc_data, junction, junc_id, min_trips, upper_threshold, lower_th
     # Store the junction trip data
     junc_trips = np.zeros((0, 13))
     
-    # Define the color of each rule
-    colors = {-1:'k', 0:'g', 1:'r', 2:'c', 3:'m', 4:'y', 5:'b'}    
-    fig = plt.figure()
-    ax = fig.add_subplot(1, 1, 1)
-    ax.set_aspect('equal')
-    ax.set_xlim(-upper_threshold, upper_threshold)
-    ax.set_ylim(-upper_threshold, upper_threshold)
+# =============================================================================
+#     # Define the color of each rule
+#     colors = {-1:'k', 0:'g', 1:'r', 2:'c', 3:'m', 4:'y', 5:'b'}    
+#     fig = plt.figure()
+#     ax = fig.add_subplot(1, 1, 1)
+#     ax.set_aspect('equal')
+#     ax.set_xlim(-upper_threshold, upper_threshold)
+#     ax.set_ylim(-upper_threshold, upper_threshold)
+# =============================================================================
         
     junc_utm = utm.from_latlon(junction.values[0, 1], junction.values[0, 2])
     junc_utm_east = junc_utm[0]
@@ -110,33 +112,40 @@ def read_trip(junc_data, junction, junc_id, min_trips, upper_threshold, lower_th
             trip_data = add_juncid(junc_id, i, trip_data)
             
             ### Only take the approaching ones plus one window_size(8)
+            # window_size = 8
             trip_data = trip_data[:np.argmin(trip_data[:, -1])+1+window_size, :]
             
             junc_trips = np.vstack((junc_trips, trip_data))
-            ax.plot(trip_data[:, -2], trip_data[:, -3], color=colors[i[-2]])
+# =============================================================================
+#             ax.plot(trip_data[:, -2], trip_data[:, -3], color=colors[i[-2]])
+# =============================================================================
             count += 1
             
-    ax.plot([], [], color='k', label='tr') # tram rails
-    ax.plot([], [], color='g', label='uc') # uncontrolled sign
-    ax.plot([], [], color='r', label='ys') # yield sign
-    ax.plot([], [], color='c', label='ps') # priority sign
-    ax.plot([], [], color='m', label='sp') # stop sign
-    ax.plot([], [], color='y', label='tl') # traffic light
-    ax.plot([], [], color='b', label='ra') # roundabout
-    
-    plt.title('Junction %04.0f with %.0f tajectories'%(junc_id, len(junc_data)))
-    plt.legend(loc='upper right', bbox_to_anchor=(1.25, 1))
-
-    figures_dir = "../Hanover_Dataset/HannoverDataset/figures_for_juncs"
-    if not os.path.exists(figures_dir):
-        os.mkdir(figures_dir)
-    
-    if count > 0:
-        plt.savefig(os.path.join(figures_dir, 
-                                  "junctTrajs_%04.0f_%.0f"%(junc_id, count)), dpi=200)
-        plt.show()
-    plt.gcf().clear()
-    plt.close()
+# =============================================================================
+#     # ax.plot([], [], color='k', label='tr') # tram rails
+#     ax.plot([], [], color='g', label='UC') # uncontrolled sign
+#     # ax.plot([], [], color='r', label='ys') # yield sign
+#     ax.plot([], [], color='c', label='PS') # priority sign
+#     # ax.plot([], [], color='m', label='sp') # stop sign
+#     ax.plot([], [], color='y', label='TL') # traffic light
+#     # ax.plot([], [], color='b', label='ra') # roundabout
+#     
+#     # plt.title('Junction %04.0f with %.0f tajectories'%(junc_id, len(junc_data)))
+#     plt.legend(loc='upper center', ncol=3, bbox_to_anchor=(0.5, 1.12))
+# 
+#     figures_dir = "../Hanover_Dataset/HannoverDataset/figures_for_juncs"
+#     if not os.path.exists(figures_dir):
+#         os.mkdir(figures_dir)
+#     
+#     if count > 0:
+#         plt.savefig(os.path.join(figures_dir, 
+#                                   "junctTrajs_%04.0f_%.0f.pdf"%(junc_id, count)), 
+#                     dpi=200,
+#                     bbox_to_anchor="tight")
+#         plt.show()
+#     plt.gcf().clear()
+#     plt.close()
+# =============================================================================
         
     print(junc_trips.shape, count)
     if count >= min_trips:

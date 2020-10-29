@@ -6,7 +6,7 @@ Created on Tue Jul  7 16:21:57 2020
 """
 
 
-# from keras_multi_head import MultiHeadAttention
+from keras_multi_head import MultiHeadAttention
 
 from keras.layers import Input, Dense, Lambda, concatenate, LSTM, Activation, Flatten, MaxPooling2D
 from keras.layers.convolutional import Conv2D, Conv1D
@@ -31,6 +31,8 @@ class CVAE():
         self.z_dim = args.z_dim
         self.encoder_dim = args.encoder_dim
         self.z_decoder_dim = args.z_decoder_dim
+        self.query_dim = args.query_dim
+        self.keyvalue_dim = args.keyvalue_dim
         self.s_drop = args.s_drop
         self.z_drop = args.z_drop
         self.lr = args.lr
@@ -40,13 +42,25 @@ class CVAE():
         # Construct the condition model
         self.x = Input(shape=(self.window_size, self.num_features), name='x') 
         self.x_conv1d = Conv1D(self.hidden_size//2, kernel_size=3, strides=1, padding='same', name='x_conv1d')(self.x)
-        self.x_dense = Dense(self.hidden_size, activation='relu', name='x_dense')(self.x_conv1d )
-        self.x_state = LSTM(self.encoder_dim,
-                       return_sequences=False,
-                       stateful=False,
-                       dropout=self.s_drop,
-                       name='x_state')(self.x_dense)
         
+        self.x_dense = Dense(self.hidden_size, activation='relu', name='x_dense')(self.x_conv1d )        
+        self.x_state = LSTM(self.encoder_dim,
+                        return_sequences=False,
+                        stateful=False,
+                        dropout=self.s_drop,
+                        name='x_state')(self.x_dense)
+        
+        # # (1-3) Add Multi-Head-Attention for the occupancy information
+        # self.input_query = Dense(self.query_dim, activation='relu', name='input_query')(self.x_dense)
+        # self.input_key = Dense(self.keyvalue_dim, activation='relu', name='input_key')(self.x_dense)
+        # self.input_value = Dense(self.keyvalue_dim, activation='relu', name='input_value')(self.x_dense)
+        # self.att_layer = MultiHeadAttention(int(self.query_dim//8), 
+        #                                     name='att_layer')([self.input_query, self.input_key, self.input_value])
+        # self.multihead_layer = Flatten(name="multihead_layer")(self.att_layer)        
+        # self.x_state = Dense(self.encoder_dim, name="x_state_flatten")(self.multihead_layer)
+        
+        
+
         # Construct the label model        
         self.y = Input(shape=(self.num_classes, ), name='y')
         self.y_dense = Dense(self.encoder_dim//8, activation='relu', name='y_dense')(self.y)        
@@ -106,7 +120,7 @@ class CVAE():
         # BUILD THE CVAE MODEL
         cvae = Model([self.x, self.y], 
                      [self.y_prime])
-        opt = optimizers.Adam(lr=self.lr, beta_1=0.9, beta_2=0.999, decay=1e-6, amsgrad=False)
+        opt = optimizers.Adam(lr=self.lr, beta_1=0.9, beta_2=0.999, decay=1e-8, amsgrad=False)
         cvae.compile(optimizer=opt, loss=vae_loss)
         return cvae
     

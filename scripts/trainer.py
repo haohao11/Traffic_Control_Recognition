@@ -5,6 +5,30 @@ This is the mudule to call:
     the read_junc module for data preprocess
     the data_utils module for loading data
     the model module for classification
+    
+data:
+    0: id, (this is the unique id for the trips across the junctions)
+    1: junc_id,
+    2: junc_arm_rule,
+    3: junc_arm,
+    4: gid, 
+    5: trip_id, 
+    6: lat, 
+    7: lon, 
+    8: unixtime, 
+    9: timestamp,
+    10: junc_utm_to_center,
+    11: utm_east, 
+    12: utm_north, 
+    13: utm_east_speed, 
+    14: utm_east_speed, 
+    15: speed_1, 
+    16: speed_2, (old table speed) 
+    17: delta_time
+    18: angle
+    
+    
+    
 @author: cheng
 """
 
@@ -33,7 +57,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description=desc)    
     parser.add_argument('--min_trips', type=int, default=16, 
                         help='minimum number of trips in each junction')
-    parser.add_argument('--upper_threshold', type=float, default=100.0, 
+    parser.add_argument('--upper_threshold', type=float, default=65.0, 
                         help='the upper bound distance [m] of each trip to the given junction')
     parser.add_argument('--lower_threshold', type=float, default=10.0, 
                         help='the lower bound distance [m] of each trip to the given junction')
@@ -43,7 +67,7 @@ def parse_args():
                         help='sequence length for the sliding window')
     parser.add_argument('--stride', type=int, default=2, 
                         help='stride for the sliding window') 
-    parser.add_argument('--num_features', type=int, default=7, 
+    parser.add_argument('--num_features', type=int, default=6, 
                         help='number of input features')
     parser.add_argument('--num_classes', type=int, default=3, 
                         help='number of input classes')
@@ -55,26 +79,30 @@ def parse_args():
     parser.add_argument('--z_decoder_dim', type=int, default=128, 
                         help='This is the size of the decoder LSTM dimension')
     parser.add_argument('--hidden_size', type=int, default=128, 
-                        help='The size of GRU hidden state')
-    parser.add_argument('--batch_size', type=int, default=64, 
+                        help='The size of LSTM hidden state')
+    parser.add_argument('--batch_size', type=int, default=256, 
                         help='Batch size')
-    parser.add_argument('--s_drop', type=float, default=0.1, 
+    parser.add_argument('--s_drop', type=float, default=0.3, 
                         help='The dropout rate for trajectory sequence')
-    parser.add_argument('--z_drop', type=float, default=0.2, 
+    parser.add_argument('--z_drop', type=float, default=0.1, 
                         help='The dropout rate for z input')
-    parser.add_argument('--beta', type=float, default=0.8, 
+    parser.add_argument('--query_dim', type=int, default=64, 
+                        help='The dimension of the query')
+    parser.add_argument('--keyvalue_dim', type=int, default=64, 
+                        help='The dimension for key and value')
+    parser.add_argument('--beta', type=float, default=0.80, 
                         help='Loss weight')   
-    parser.add_argument('--train_mode', type=bool, default=False, 
+    parser.add_argument('--train_mode', type=bool, default=True, 
                         help='This is the training mode')
     parser.add_argument('--split', type=float, default=0.7, 
                         help='the split rate for training and validation')
-    parser.add_argument('--lr', type=float, default=5e-4, 
+    parser.add_argument('--lr', type=float, default=1e-3, 
                         help='Learning rate')
     parser.add_argument('--aug_num', type=int, default=8, 
                         help='Number of augmentations')
-    parser.add_argument('--epochs', type=int, default=200, 
+    parser.add_argument('--epochs', type=int, default=500, 
                         help='Number of epochs')
-    parser.add_argument('--patience', type=int, default=10, 
+    parser.add_argument('--patience', type=int, default=30, 
                         help='Maximum mumber of continuous epochs without converging')    
                           
     args = parser.parse_args(sys.argv[1:])
@@ -171,7 +199,7 @@ def main():
         
     # Load the sequence data and get the data index
     data = [sequence for sequence in data_loader.sliding_window()]
-    data = np.reshape(data, (-1, 18)) # data index + features = 10 + 8 = 18
+    data = np.reshape(data, (-1, 19)) # data index + features = 10 + 9 = 19
     
     
     
@@ -180,6 +208,10 @@ def main():
     if args.num_classes==3:
         data[data[:, 2]==-1, 2] = 2
         data[data[:, 2]==1, 2] = 2
+        
+        # # Filter out -1 and 1
+        # data = data[data[:, 2]!=-1, :]
+        # data = data[data[:, 2]!=1, :]
         
         # new target class: 
         # uncontrolled:0, 
@@ -200,20 +232,51 @@ def main():
     _label = np.eye(args.num_classes)[label].reshape(-1, args.window_size, args.num_classes)    
         
     # Question: how to do the data partitioning    
-    data = np.reshape(data, (-1, args.window_size, 18))
+    data = np.reshape(data, (-1, args.window_size, 19))
     print(data.shape)
     
     train_val_split = data_partition(data, args)
     
     train_data_index = data[train_val_split, -1, :10] # the last step of the sliding window
-    train_x = data[train_val_split, :, 10:18]
-    train_x = np.concatenate((train_x[:, :, 0:6], train_x[:, :, 7:8]), axis=2)
-    train_y = _label[train_val_split, -1, :] # the last step of the sliding window
+    # 10/0: junc_utm_to_center,
+    # 11/1: utm_east, 
+    # 12/2: utm_north, 
+    # 13/3: utm_east_speed, 
+    # 14/4: utm_east_speed, 
+    # 15/5: speed_1, 
+    # 16/6: speed_2, (old table speed) 
+    # 17/7: delta_time
+    # 18/8: angle
     
-    val_data_index = data[~train_val_split, -1, :10] # the last step of the sliding window
-    val_x = data[~train_val_split, :, 10:18]
-    val_x = np.concatenate((val_x[:, :, 0:6], val_x[:, :, 7:8]), axis=2)
-    val_y = _label[~train_val_split, -1, :] # the last step of the sliding window
+  
+# =============================================================================
+#     train_x = data[train_val_split, :, 10:19]
+#     train_x = np.concatenate((train_x[:, :, 0:6], train_x[:, :, 7:8]), axis=2) # skip the old speed
+#     train_y = _label[train_val_split, -1, :] # the last step of the sliding window
+#     
+#     val_data_index = data[~train_val_split, -1, :10] # the last step of the sliding window
+#     val_x = data[~train_val_split, :, 10:19]
+#     val_x = np.concatenate((val_x[:, :, 0:6], val_x[:, :, 7:8]), axis=2)
+#     val_y = _label[~train_val_split, -1, :] # the last step of the sliding window
+# =============================================================================
+    
+    
+    # ToDo, feature/ablation
+    # remove delta_t
+    train_x = data[train_val_split, :, 10:19]
+    train_x = np.concatenate((train_x[:, :, 0:5], train_x[:, :, 7:8]), axis=2)
+    # train_x = train_x[:, :, 2:5]
+    train_y = _label[train_val_split, -1, :]   
+    val_data_index = data[~train_val_split, -1, :10] 
+    val_x = data[~train_val_split, :, 10:19]
+    val_x = np.concatenate((val_x[:, :, 0:5], val_x[:, :, 7:8]), axis=2)
+    # val_x = val_x[:, :, 2:5]
+    val_y = _label[~train_val_split, -1, :] 
+    
+    
+    
+    
+    
     
     print(np.unique(np.argmax(val_y.reshape(-1, args.num_classes), axis=1), 
                     return_counts=True))    
@@ -247,7 +310,7 @@ def main():
     
     # # Start training phase
     if args.train_mode:
-        train.load_weights("../models/cvae_100_20200709-112451.hdf5")
+        # train.load_weights("../models/cvae_500_20201008-213111_03_01_90.hdf5")
         print("Start training the model...")           
         train.fit(x=[train_x, train_y],
                   y=train_y,
@@ -261,7 +324,8 @@ def main():
         
     else:
         print('Run pretrained model')       
-        train.load_weights("../models/cvae_200_20200709-211305.hdf5")
+        # train.load_weights("../models/cvae_200_20200709-211305.hdf5")
+        train.load_weights("../models/cvae_500_20201008-213111_03_01_90.hdf5")
         
             
     # # Start inference phase
