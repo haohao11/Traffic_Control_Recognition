@@ -4,7 +4,7 @@ This is the project for detecting junction arm rules based on GPS signal data
 
 # Data process
 This is the step to select the GPS trips (trajectories) in each junction.
-Note that, for a long trip, it might pass multiple junctions by different distance. Only the trips that pass the given junction (meet the *lower_threshold*, e.g., 10m to the junction center) is included to that particular junction. The included trips are cutoff into *junc_trip* by a *upper_theshold* (e.g., 100m to the junction center). 
+Note that, for a long trip, it might pass multiple junctions by different distance. Only the trips that pass the given junction (meet the *lower_threshold*, e.g., 10m to the junction center) is included to that particular junction. The included trips are cutoff into *junc_trip* by a *upper_theshold* (e.g., 65m to the junction center). 
 To distinguish the same trip id for multiple junctions, a unique id is assigned to the *junc_trip* across all the junctions. The *min_trips* is used to exclude the junctions that have trips less than the predefine threshold value.
 
 **arm rules**
@@ -37,54 +37,60 @@ Firgure 1            |  Figure 2
 
 The *lower_threshold* and *min_trips* values are taken from the paper, but sometimes it is problomatic when the next junction is too close (see Figure 1) and many junsctions have less than 16 trips passed by, such as roundabout, stop and sign. The threshold values may need to be optimized by the classification experiments. The third figure shows the distributions of number of GPS points and number of trips in each arm rule.
 
-# Some intermediate results
 
-## Classification results for each sliding window 
-sliding window = 8, stride=2
-test/validation (70/30)
-model: cvae_100_20200709-112451.hdf5
+# The experiment (hyper)
+```html
+min_tripss = 16
+upper_threshold = 65.5
+lower_threshold = 10.0
+window_size = 8
+stride = 2
+num_features = 7
+num_classes = 3
+encoder_dim = 128
+z_dim = 2
+z_decoder_dim = 128
+hidden_size = 128
+batch_size = 256
+s_drop = 0.3
+z_drop = 0.1
+beta = 0.8
+split = 0.7
+lr = 1e-3
+wpochs = 500
+patience = 20
+````
+
+model: cvae_500_20201008-213111_03_01_90.hdf5.hdf5
 
 | CF matrix  | uc | tf  | ps |
 | ------------- | ------------- | ------------- | ------------- |
-| uc | **7722** | 767 | 1325 |
-| tf | 1331 | **9305** | 2263 |
-| ps | 1180 | 1116 | **7303** |
+| uc | **3803** | 416 | 1109 |
+| tf | 760 | **6013** | 1377 |
+| ps | 516 | 742 | **3769** |
 
 | Items  | precission | recall  | f1-score | support |
 | ------------- | ------------- | ------------- | ------------- |------------- |
-| uncontrolled (uc) | 0.75 | 0.79 | 0.77 | 9814 |
-| traffic light (tf) | 0.83 | 0.72 | 0.77 | 12899 |
-| priority sign (ps) | 0.67 | 0.76 | 0.71 | 9599 |
-| accuracy |  |  | 0.75 | 32312 |
-| macro avg | 0.75 | 0.76 | 0.75 | 32312 |
-| weighted avg | 0.76 | 0.75 | 0.75 | 32312 |
+| uncontrolled (uc) | 0.75 | 0.71 | 0.73 | 5328 |
+| traffic light (tf) | 0.84 | 0.74 | 0.78 | 8150 |
+| priority sign (ps) | 0.60 | 0.75 | 0.67 | 5027 |
+| accuracy |  |  | 0.73 | 18505 |
+| macro avg | 0.73 | 0.73 | 0.73 | 18505 |
+| weighted avg | 0.75 | 0.73 | 0.74 | 18505 |
 
 ## Classification results for each arm
 test/validation (70/30)
 | CF matrix  | uc | tf  | ps |
 | ------------- | ------------- | ------------- | ------------- |
-| uc | **130** | 1 | 8 |
-| tf | 8 | **172** | 22 |
-| ps | 11 | 11 | **190** |
+| uc | **120** | 3 | 15 |
+| tf | 4 | **187** | 16 |
+| ps | 12 | 7 | **196** |
 
 | Items  | precission | recall  | f1-score | support |
 | ------------- | ------------- | ------------- | ------------- |------------- |
-| uncontrolled (uc) | 0.87 | 0.94 | 0.90 | 139 |
-| traffic light (tf) | 0.93 | 0.85 | 0.89 | 202 |
-| priority sign (ps) | 0.86 | 0.90 | 0.88 | 212 |
-| accuracy |  |  | 0.89 | 553 |
-| macro avg | 0.89 | 0.89 | 0.89 | 553 |
-| weighted avg | 0.89 | 0.89 | 0.89 | 553 |
-
-
-# ToDos
-- write sliding window (Done).
-- apply seq-to-seq classiers (CVAE model, Done).
-- write evluation metrics (Done).
-- Sum up the prediction for trips/junctions/arms.
-
-# Questions
-- Why are the speed provided by the files and speed calculated by data_utils not the same? Is the bias of transformation from lon/long to utm?
-- How to partition the data, based on trips/junctions/sequence?
-
-
+| uncontrolled (uc) | 0.88 | 0.87 | 0.88 | 138 |
+| traffic light (tf) | 0.95 | 0.90 | 0.93 | 202 |
+| priority sign (ps) | 0.86 | 0.91 | 0.89 | 215 |
+| accuracy |  |  | 0.90 | 560 |
+| macro avg | 0.90 | 0.89 | 0.90 | 560 |
+| weighted avg | 0.90 | 0.90 | 0.90 | 560 |
