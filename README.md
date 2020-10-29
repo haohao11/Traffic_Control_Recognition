@@ -20,7 +20,18 @@ To distinguish the same trip id for multiple junctions, a unique id is assigned 
 python scripts/trainer.py
 ```
 
-Please contact the authors for the data.
+Due to the data protection, the raw data is not provided.
+If you use the model for your own data, please cite the paper
+
+``` html
+@article{cheng2019traffic,
+  title={Traffic Control Recognition with Speed-Profiles: A Deep Learning Approach},
+  author={Cheng, Hao and Zourlidou, Stefania and Sester, Monika},
+  journal={ISPRS International Journal of Geo-Information},
+  year={2020},
+}
+```
+
 
 The *lower_threshold* and *min_trips* values are taken from the paper, but sometimes it is problomatic when the next junction is too close (see Figure 1) and many junsctions have less than 16 trips passed by, such as roundabout, stop and sign. The threshold values may need to be optimized by the classification experiments. The third figure shows the distributions of number of GPS points and number of trips in each arm rule.
 
