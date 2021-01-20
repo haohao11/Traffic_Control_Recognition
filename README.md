@@ -24,7 +24,7 @@ Due to the data protection, the raw data is not provided.
 If you use the model for your own data, please cite the paper
 
 ``` html
-@article{cheng2019traffic,
+@article{cheng2020traffic,
   title={Traffic Control Recognition with Speed-Profiles: A Deep Learning Approach},
   author={Cheng, Hao and Zourlidou, Stefania and Sester, Monika},
   journal={ISPRS International Journal of Geo-Information},
